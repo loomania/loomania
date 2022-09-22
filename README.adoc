@@ -1,0 +1,30 @@
+= Loomania
+
+*Loomania* is a project that provides access to selected internals of virtual threads and continuations for the purposes of experimenting with APIs that are not (yet) public within the Loom system.
+
+== Usage
+
+The Loomania JAR can be included in any project compiled against Java 11 or later, however it will only function if the JVM is Java 19.
+
+Furthermore, the following flags must be given on the command line:
+
+* `--enable-preview` - this enables the Loom/virtual thread features
+* `--add-opens=java.base/java.lang=ALL-UNNAMED` - this allows the library to hack into the virtual thread internals
+
+Without *both* of these flags, any Loomania operation will fail by throwing `UnsupportedOperationException`.
+
+=== Usage in production
+
+*DO NOT* use Loomania in production. It's only for experimentation! If the experiments work out, then some or all of these APIs may be added to OpenJDK and this library will go away.
+
+== Maven
+
+The maven artifact coordinates are:
+
+```xml
+<dependency>
+    <groupId>io.github.dmlloyd.loomania</groupId>
+    <artifactId>loomania</artifactId>
+    <version>1.0</version>
+</dependency>
+```
