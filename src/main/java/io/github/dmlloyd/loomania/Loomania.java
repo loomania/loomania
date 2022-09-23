@@ -3,7 +3,7 @@ package io.github.dmlloyd.loomania;
 import java.util.function.Consumer;
 
 /**
- * Access to Loom internals for experimental munging. Non-Java 19 version.
+ * Access to Loom internals for experimental munging.
  */
 public final class Loomania {
 
