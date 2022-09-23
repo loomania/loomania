@@ -24,6 +24,17 @@
 
     <name>Loomania</name>
     <description>A series of questionable hacks to allow for unconventional experimentation with Loom</description>
+    <url>https://github.com/dmlloyd/loomania</url>
+
+    <developers>
+        <developer>
+            <id>dmlloyd</id>
+            <name>David M. Lloyd</name>
+            <email>david.lloyd@redhat.com</email>
+            <organization>Red Hat, Inc.</organization>
+            <organizationUrl>https://redhat.com/en</organizationUrl>
+        </developer>
+    </developers>
 
     <licenses>
         <license>
