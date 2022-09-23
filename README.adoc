@@ -17,6 +17,34 @@ Without *both* of these flags, any Loomania operation will fail by throwing `Uns
 
 *DO NOT* use Loomania in production. It's only for experimentation! If the experiments work out, then some or all of these APIs may be added to OpenJDK and this library will go away.
 
+=== The code
+
+To use Loomania, use methods on the `io.github.dmlloyd.loomania.Loomania` class.
+
+* `isInstalled()` - returns `true` if Loomania is usable in the current process.
+* `isVirtual(Thread)` - returns `true` iff the given thread is virtual.
+* `currentCarrierThread()` - returns the current carrier thread if the current thread is virtual, or the current thread otherwise.
+* `enterVirtuality(Consumer<VirtualThreadManager>)` - makes the current thread into a carrier thread, executing the given consumer in a virtual thread. The carrier continues to run until `VirtualThreadManager#close()` is called, at which point it will (theoretically) drain the remaining virtual threads from the pool and cause the outer `enterVirtuality()` call to return.
+
+==== The example
+
+This trivial example can be run using `jshell` like this:
+
+```input
+$ jshell --class-path path/to/loomania-1.0.jar --enable-preview -R--add-opens=java.base/java.lang=ALL-UNNAMED
+|  Welcome to JShell -- Version 19-beta
+|  For an introduction type: /help intro
+
+jshell> import io.github.dmlloyd.loomania.*
+
+jshell> Loomania.enterVirtuality(vtm -> vtm.execute(() -> { System.out.println("hello!"); vtm.close();}))
+hello!
+
+jshell>
+```
+
+Note that without the `close` call, the call to `enterVirtuality` will never return.
+
 == Maven
 
 The maven artifact coordinates are:
