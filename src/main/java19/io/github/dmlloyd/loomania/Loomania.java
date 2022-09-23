@@ -60,9 +60,13 @@ public final class Loomania {
     }
 
     public static void enterVirtuality(Consumer<VirtualThreadManager> mainThreadRunner) {
+        enterVirtuality(mainThreadRunner, null);
+    }
+
+    public static void enterVirtuality(Consumer<VirtualThreadManager> mainThreadRunner, Runnable unparker) {
         if (! ok) throw Nope.nope();
         @SuppressWarnings("resource")
-        Runner runner = new Runner();
+        Runner runner = new Runner(unparker);
         runner.threadFactory.newThread(() -> mainThreadRunner.accept(runner)).start();
         runner.run();
     }
@@ -77,9 +81,11 @@ public final class Loomania {
         private final Thread thread;
         private final ThreadFactory threadFactory;
         private final Executor internalExecutor = this::executeInternal;
+        private final Runnable unparker;
         private volatile boolean stop;
 
-        Runner() {
+        Runner(final Runnable unparker) {
+            this.unparker = unparker;
             thread = Thread.currentThread();
             if (isVirtual(thread)) {
                 throw new IllegalArgumentException("Carrier thread cannot be virtual");
@@ -158,6 +164,10 @@ public final class Loomania {
                 ArrayDeque<Runnable> sharedQueue = this.sharedQueue;
                 synchronized (sharedQueue) {
                     sharedQueue.add(task);
+                }
+                if (unparker != null) {
+                    // e.g. wake up selector...
+                    unparker.run();
                 }
                 LockSupport.unpark(thread);
             }

@@ -48,5 +48,17 @@ public final class Loomania {
         throw Nope.nope();
     }
 
+    /**
+     * Cause the current thread to become a carrier for virtual threads until the virtual thread manager is terminated.
+     * The given runner is run within a virtual thread on this carrier.
+     *
+     * @param mainThreadRunner the main thread runner (must not be {@code null})
+     * @param unparker a {@code Runnable} to call when the carrier thread accepts a new task, or {@code null} for none
+     * @throws UnsupportedOperationException if Loomania is not installed
+     */
+    public static void enterVirtuality(Consumer<VirtualThreadManager> mainThreadRunner, Runnable unparker) {
+        throw Nope.nope();
+    }
+
     private Loomania() {}
 }
