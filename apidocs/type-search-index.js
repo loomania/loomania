@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"io.github.dmlloyd.loomania","l":"Loomania"},{"p":"io.github.dmlloyd.loomania","l":"VirtualThreadManager"}];updateSearchResults();
