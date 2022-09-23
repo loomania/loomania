@@ -113,6 +113,12 @@
             <plugin>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>${version.maven-gpg-plugin}</version>
+                <configuration>
+                    <gpgArguments>
+                        <argument>--pinentry-mode</argument>
+                        <argument>loopback</argument>
+                    </gpgArguments>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -155,12 +161,6 @@
                                 <goals>
                                     <goal>sign</goal>
                                 </goals>
-                                <configuration>
-                                    <gpgArguments>
-                                        <argument>--pinentry-mode</argument>
-                                        <argument>loopback</argument>
-                                    </gpgArguments>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
