@@ -51,8 +51,8 @@ public class GunnarFairnessTest {
 
     private static void runOne(final Instant start, int id) {
         long res = 0;
-        for (int j = 0; j < 100_000_000; j++) {
-            if (j % 1_000_000 == 0) {
+        for (int j = 0; j < 400_000_000; j++) {
+            if (j % 16_000_000 == 0) {
                 if (PRINT_CS) {
                     System.out.println("yield" + id);
                 }
