@@ -1,6 +1,5 @@
 package io.github.dmlloyd.loomania;
 
-import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
@@ -51,7 +50,7 @@ public class GunnarFairnessTest {
     }
 
     private static void runOne(final Instant start, int id) {
-        BigInteger res = BigInteger.ZERO;
+        long res = 0;
         for (int j = 0; j < 100_000_000; j++) {
             if (j % 1_000_000 == 0) {
                 if (PRINT_CS) {
@@ -73,10 +72,10 @@ public class GunnarFairnessTest {
                     System.out.println("resume" + id);
                 }
             }
-            res = res.add(BigInteger.ONE);
+            res = (res + 17) * 1337L;
         }
 
-        blackHole = res.longValue();
+        blackHole = res;
 
         System.out.println(id + ";" + Duration.between(start, Instant.now()).toMillis());
     }
