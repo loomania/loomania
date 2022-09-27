@@ -25,6 +25,15 @@ public interface VirtualThreadManager extends Executor, ThreadFactory, AutoClose
     Thread newThread(Runnable runnable);
 
     /**
+     * Determine if the scheduler has pending tasks.
+     * If {@code false}, parking or exiting this virtual thread will cause the carrier to be idle.
+     *
+     * @return {@code true} if there are pending tasks, or {@code false} otherwise
+     * @throws IllegalStateException if called from outside the carrier thread
+     */
+    boolean hasPendingTasks() throws IllegalStateException;
+
+    /**
      * Exit when all virtual threads are complete.
      */
     void close();
