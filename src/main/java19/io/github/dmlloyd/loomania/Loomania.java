@@ -106,6 +106,18 @@ public final class Loomania {
             return threadFactory.newThread(runnable);
         }
 
+        public boolean hasPendingTasks() throws IllegalStateException {
+            if (currentCarrierThread() != thread) {
+                throw new IllegalStateException("Called from wrong thread");
+            }
+            if (!localQueue.isEmpty()) {
+                return true;
+            }
+            synchronized (sharedQueue) {
+                return ! sharedQueue.isEmpty();
+            }
+        }
+
         public void close() {
             // TODO: this is not correct; we need to track the count of virtual threads and exit when it is zero...
             // But for now, we can just burn down the world

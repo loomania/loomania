@@ -80,6 +80,15 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>default-testCompile</id>
+                        <configuration>
+                            <release>19</release>
+                            <compilerArgs>
+                                <compilerArg>--enable-preview</compilerArg>
+                            </compilerArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>java19-compile</id>
                         <phase>compile</phase>
                         <goals>
@@ -154,6 +163,11 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${version.maven-surefire-plugin}</version>
+                <configuration>
+                    <includes>
+                        <include>**/*TestCase.java</include>
+                    </includes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
