@@ -9,18 +9,25 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class Loomania {
 
     private static final boolean ok;
     private static final MethodHandle currentCarrierThread;
     private static final MethodHandle virtualThreadFactory;
+    private static final MethodHandle pin;
+    private static final MethodHandle unpin;
 
     static {
         boolean isOk = false;
         MethodHandle ct = null;
         MethodHandle vtf = null;
+        MethodHandle p = null;
+        MethodHandle u = null;
         try {
             MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(Thread.class, MethodHandles.lookup());
             ct = lookup.findStatic(Thread.class, "currentCarrierThread", MethodType.methodType(Thread.class));
@@ -28,6 +35,9 @@ public final class Loomania {
             vtf = lookup.findConstructor(vtbClass, MethodType.methodType(void.class, Executor.class));
             // create efficient transformer
             vtf = vtf.asType(MethodType.methodType(Thread.Builder.OfVirtual.class, Executor.class));
+            Class<?> continuationClass = lookup.findClass("jdk.internal.vm.Continuation");
+            p = lookup.findStatic(continuationClass, "pin", MethodType.methodType(void.class));
+            u = lookup.findStatic(continuationClass, "unpin", MethodType.methodType(void.class));
             isOk = true;
         } catch (Exception | Error e) {
             // no good
@@ -36,6 +46,8 @@ public final class Loomania {
         ok = isOk;
         currentCarrierThread = ct;
         virtualThreadFactory = vtf;
+        pin = p;
+        unpin = u;
     }
 
     public static boolean isInstalled() {
@@ -69,6 +81,44 @@ public final class Loomania {
         Runner runner = new Runner(unparker);
         runner.threadFactory.newThread(() -> mainThreadRunner.accept(runner)).start();
         runner.run();
+    }
+
+    public static <T, U, R> R doPinned(T arg1, U arg2, BiFunction<T, U, R> task) {
+        if (! ok) throw Nope.nope();
+        pin();
+        try {
+            return task.apply(arg1, arg2);
+        } finally {
+            unpin();
+        }
+    }
+
+    public static <T, R> R doPinned(T arg, Function<T, R> task) {
+        return doPinned(task, arg, Function::apply);
+    }
+
+    public static <R> R doPinned(Supplier<R> task) {
+        return doPinned(task, Supplier::get);
+    }
+
+    private static void pin() {
+        try {
+            pin.invokeExact();
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new UndeclaredThrowableException(e);
+        }
+    }
+
+    private static void unpin() {
+        try {
+            unpin.invokeExact();
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new UndeclaredThrowableException(e);
+        }
     }
 
     private Loomania() {}
