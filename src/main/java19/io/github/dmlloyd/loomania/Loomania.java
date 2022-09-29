@@ -29,19 +29,20 @@ public final class Loomania {
         MethodHandle p = null;
         MethodHandle u = null;
         try {
-            MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(Thread.class, MethodHandles.lookup());
-            ct = lookup.findStatic(Thread.class, "currentCarrierThread", MethodType.methodType(Thread.class));
+            MethodHandles.Lookup thr = MethodHandles.privateLookupIn(Thread.class, MethodHandles.lookup());
+            ct = thr.findStatic(Thread.class, "currentCarrierThread", MethodType.methodType(Thread.class));
             Class<?> vtbClass = Class.forName("java.lang.ThreadBuilders$VirtualThreadBuilder", false, null);
-            vtf = lookup.findConstructor(vtbClass, MethodType.methodType(void.class, Executor.class));
+            vtf = thr.findConstructor(vtbClass, MethodType.methodType(void.class, Executor.class));
             // create efficient transformer
             vtf = vtf.asType(MethodType.methodType(Thread.Builder.OfVirtual.class, Executor.class));
-            Class<?> continuationClass = lookup.findClass("jdk.internal.vm.Continuation");
-            p = lookup.findStatic(continuationClass, "pin", MethodType.methodType(void.class));
-            u = lookup.findStatic(continuationClass, "unpin", MethodType.methodType(void.class));
+            Class<?> continuationClass = Class.forName("jdk.internal.vm.Continuation", false, null);
+            MethodHandles.Lookup jimLookup = MethodHandles.privateLookupIn(continuationClass, MethodHandles.lookup());
+            p = jimLookup.findStatic(continuationClass, "pin", MethodType.methodType(void.class));
+            u = jimLookup.findStatic(continuationClass, "unpin", MethodType.methodType(void.class));
             isOk = true;
         } catch (Exception | Error e) {
             // no good
-            System.err.println("Failed to initialize Loomania (make sure you have `--enable-preview` and `--add-opens=java.base/java.lang=ALL-UNNAMED` on Java 19): " + e);
+            System.err.println("Failed to initialize Loomania (" + Nope.nopeMsg() + "): " + e);
         }
         ok = isOk;
         currentCarrierThread = ct;
