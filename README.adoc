@@ -33,7 +33,7 @@ To use Loomania, use methods on the `io.github.dmlloyd.loomania.Loomania` class.
 This trivial example can be run using `jshell` like this:
 
 ```console
-$ jshell --class-path path/to/loomania-1.0.jar \
+$ jshell --class-path path/to/loomania-1.1.jar \
     --enable-preview \
     -R--add-opens=java.base/java.lang=ALL-UNNAMED \
     -R--add-opens=jdk.internal.vm/java.lang=ALL-UNNAMED
