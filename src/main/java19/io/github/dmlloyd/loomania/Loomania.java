@@ -12,6 +12,7 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.LongConsumer;
 import java.util.function.Supplier;
 
 public final class Loomania {
@@ -167,6 +168,11 @@ public final class Loomania {
             synchronized (sharedQueue) {
                 return ! sharedQueue.isEmpty();
             }
+        }
+
+        public LatencyMonitor createLatencyMonitor(final LongConsumer resultListener) {
+            // todo: using internal executor might not work so well
+            return new LatencyMonitor(internalExecutor, resultListener);
         }
 
         public void close() {
