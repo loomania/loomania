@@ -57,7 +57,7 @@ The maven artifact coordinates are:
 
 ```xml
 <dependency>
-    <groupId>io.github.dmlloyd.loomania</groupId>
+    <groupId>io.github.dmlloyd</groupId>
     <artifactId>loomania</artifactId>
     <version>1.1</version>
 </dependency>
