@@ -28,6 +28,8 @@ To use Loomania, use methods on the `io.github.dmlloyd.loomania.Loomania` class.
 * `enterVirtuality(Consumer<VirtualThreadManager>)` - makes the current thread into a carrier thread, executing the given consumer in a virtual thread. The carrier continues to run until `VirtualThreadManager#close()` is called, at which point it will (theoretically) drain the remaining virtual threads from the pool and cause the outer `enterVirtuality()` call to return.
 * `doPinned()` - runs the given code block with the virtual thread pinned to the carrier (preventing preemption).
 
+More complete https://dmlloyd.github.io/loomania/apidocs[API JavaDoc can be found here].
+
 ==== The example
 
 This trivial example can be run using `jshell` like this:
