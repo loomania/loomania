@@ -35,7 +35,7 @@ More complete https://dmlloyd.github.io/loomania/apidocs[API JavaDoc can be foun
 This trivial example can be run using `jshell` like this:
 
 ```console
-$ jshell --class-path path/to/loomania-1.1.jar \
+$ jshell --class-path path/to/loomania-1.2.jar \
     --enable-preview \
     -R--add-opens=java.base/java.lang=ALL-UNNAMED \
     -R--add-opens=jdk.internal.vm/java.lang=ALL-UNNAMED
@@ -61,6 +61,6 @@ The maven artifact coordinates are:
 <dependency>
     <groupId>io.github.dmlloyd</groupId>
     <artifactId>loomania</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
 </dependency>
 ```
