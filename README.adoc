@@ -10,7 +10,7 @@ Furthermore, the following flags must be given on the command line:
 
 * `--enable-preview` - this enables the Loom/virtual thread features
 * `--add-opens=java.base/java.lang=ALL-UNNAMED` - this allows the library to hack into the virtual thread internals
-* `--add-opens=jdk.internal.vm/java.lang=ALL-UNNAMED` - this allows the library to hack into yet more virtual thread internals
+* `--add-opens=java.base/jdk.internal.vm=ALL-UNNAMED` - this allows the library to hack into yet more virtual thread internals
 
 Without *all* of these flags, any Loomania operation will fail by throwing `UnsupportedOperationException`.
 
@@ -38,7 +38,7 @@ This trivial example can be run using `jshell` like this:
 $ jshell --class-path path/to/loomania-1.2.jar \
     --enable-preview \
     -R--add-opens=java.base/java.lang=ALL-UNNAMED \
-    -R--add-opens=jdk.internal.vm/java.lang=ALL-UNNAMED
+    -R--add-opens=java.base/jdk.internal.vm=ALL-UNNAMED
 
 |  Welcome to JShell -- Version 19-beta
 |  For an introduction type: /help intro

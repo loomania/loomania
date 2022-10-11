@@ -11,6 +11,6 @@ final class Nope {
     }
 
     static String nopeMsg() {
-        return "Requires Java 19 or later with `--enable-preview`, `--add-opens=java.base/java.lang=ALL-UNNAMED`, and `--add-opens=java.base/java.lang=ALL-UNNAMED`";
+        return "Requires Java 19 or later with `--enable-preview`, `--add-opens=java.base/java.lang=ALL-UNNAMED`, and `--add-opens=java.base/jdk.internal.vm=ALL-UNNAMED`";
     }
 }
