@@ -11,6 +11,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <version.build-helper-maven-plugin>3.2.0</version.build-helper-maven-plugin>
+        <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
         <version.maven-compiler-plugin>3.10.1</version.maven-compiler-plugin>
         <version.maven-gpg-plugin>3.0.1</version.maven-gpg-plugin>
         <version.maven-install-plugin>2.5.2</version.maven-install-plugin>
@@ -122,13 +124,18 @@
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${version.maven-jar-plugin}</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Multi-Release>true</Multi-Release>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <Multi-Release>true</Multi-Release>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-gpg-plugin</artifactId>
@@ -157,6 +164,61 @@
                         <goals>
                             <goal>jar-no-fork</goal>
                         </goals>
+                        <configuration>
+                            <skipSource>true</skipSource>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>${version.maven-antrun-plugin}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources-our-way</id>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar">
+                                    <fileset dir="${project.basedir}/src/main/java" includes="**/*.java" excludes="**/Loomania.java"/>
+                                    <fileset dir="${project.basedir}/src/main/java19" includes="**/*.java"/>
+                                    <zipfileset prefix="META-INF/maven/${project.groupId}/${project.artifactId}/" dir="${project.build.directory}/maven-archiver" includes="pom.properties"/>
+                                    <zipfileset prefix="META-INF/maven/${project.groupId}/${project.artifactId}/" dir="${project.basedir}" includes="pom.xml"/>
+
+                                    <manifest>
+                                        <attribute name="Created-By" value="Maven Source Plugin ${version.maven-source-plugin}"/>
+                                        <attribute name="Actually-Created-By" value="Antrun plugin because Maven is bad"/>
+                                        <attribute name="Build-Jdk-Spec" value="19"/>
+                                    </manifest>
+                                </jar>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${version.build-helper-maven-plugin}</version>
+                <executions>
+                    <execution>
+                        <id>make-sure-sources-are-attached</id>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>${project.build.directory}/${project.build.finalName}-sources.jar</file>
+                                    <classifier>sources</classifier>
+                                    <type>jar</type>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
