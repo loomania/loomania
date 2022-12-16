@@ -1,4 +1,4 @@
-package io.github.dmlloyd.loomania;
+package io.github.loomania;
 
 import java.time.Duration;
 import java.time.Instant;

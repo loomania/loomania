@@ -1,4 +1,4 @@
-package io.github.dmlloyd.loomania;
+package io.github.loomania;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
