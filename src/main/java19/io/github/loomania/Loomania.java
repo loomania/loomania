@@ -9,26 +9,18 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.LockSupport;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.LongConsumer;
-import java.util.function.Supplier;
 
 public final class Loomania {
 
     private static final boolean ok;
     private static final MethodHandle currentCarrierThread;
     private static final MethodHandle virtualThreadFactory;
-    private static final MethodHandle pin;
-    private static final MethodHandle unpin;
 
     static {
         boolean isOk = false;
         MethodHandle ct = null;
         MethodHandle vtf = null;
-        MethodHandle p = null;
-        MethodHandle u = null;
         try {
             MethodHandles.Lookup thr = MethodHandles.privateLookupIn(Thread.class, MethodHandles.lookup());
             ct = thr.findStatic(Thread.class, "currentCarrierThread", MethodType.methodType(Thread.class));
@@ -36,10 +28,6 @@ public final class Loomania {
             vtf = thr.findConstructor(vtbClass, MethodType.methodType(void.class, Executor.class));
             // create efficient transformer
             vtf = vtf.asType(MethodType.methodType(Thread.Builder.OfVirtual.class, Executor.class));
-            Class<?> continuationClass = Class.forName("jdk.internal.vm.Continuation", false, null);
-            MethodHandles.Lookup jimLookup = MethodHandles.privateLookupIn(continuationClass, MethodHandles.lookup());
-            p = jimLookup.findStatic(continuationClass, "pin", MethodType.methodType(void.class));
-            u = jimLookup.findStatic(continuationClass, "unpin", MethodType.methodType(void.class));
             isOk = true;
         } catch (Exception | Error e) {
             // no good
@@ -48,17 +36,6 @@ public final class Loomania {
         ok = isOk;
         currentCarrierThread = ct;
         virtualThreadFactory = vtf;
-        pin = p;
-        unpin = u;
-    }
-
-    public static boolean isInstalled() {
-        return ok;
-    }
-
-    public static boolean isVirtual(Thread thread) {
-        if (! ok) throw Nope.nope();
-        return thread != null && thread.isVirtual();
     }
 
     public static Thread currentCarrierThread() {
@@ -85,44 +62,6 @@ public final class Loomania {
         runner.run();
     }
 
-    public static <T, U, R> R doPinned(T arg1, U arg2, BiFunction<T, U, R> task) {
-        if (! ok) throw Nope.nope();
-        pin();
-        try {
-            return task.apply(arg1, arg2);
-        } finally {
-            unpin();
-        }
-    }
-
-    public static <T, R> R doPinned(T arg, Function<T, R> task) {
-        return doPinned(task, arg, Function::apply);
-    }
-
-    public static <R> R doPinned(Supplier<R> task) {
-        return doPinned(task, Supplier::get);
-    }
-
-    private static void pin() {
-        try {
-            pin.invokeExact();
-        } catch (RuntimeException | Error e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new UndeclaredThrowableException(e);
-        }
-    }
-
-    private static void unpin() {
-        try {
-            unpin.invokeExact();
-        } catch (RuntimeException | Error e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new UndeclaredThrowableException(e);
-        }
-    }
-
     private Loomania() {}
 
     static final class Runner implements VirtualThreadManager {
@@ -139,7 +78,7 @@ public final class Loomania {
         Runner(final Runnable unparker) {
             this.unparker = unparker;
             thread = Thread.currentThread();
-            if (isVirtual(thread)) {
+            if (thread.isVirtual()) {
                 throw new IllegalArgumentException("Carrier thread cannot be virtual");
             }
 
@@ -168,11 +107,6 @@ public final class Loomania {
             synchronized (sharedQueue) {
                 return ! sharedQueue.isEmpty();
             }
-        }
-
-        public LatencyMonitor createLatencyMonitor(final LongConsumer resultListener) {
-            // todo: using internal executor might not work so well
-            return new LatencyMonitor(internalExecutor, resultListener);
         }
 
         public void close() {

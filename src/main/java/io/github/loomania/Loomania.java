@@ -1,9 +1,6 @@
 package io.github.loomania;
 
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Access to Loom internals for experimental munging.
@@ -60,51 +57,6 @@ public final class Loomania {
      * @throws UnsupportedOperationException if Loomania is not installed
      */
     public static void enterVirtuality(Consumer<VirtualThreadManager> mainThreadRunner, Runnable unparker) {
-        throw Nope.nope();
-    }
-
-    /**
-     * Run the given task with the virtual thread pinned to the carrier.
-     * This prevents any form of preemption during the execution of {@code task}.
-     *
-     * @param arg1 the first argument to pass to the task
-     * @param arg2 the second argument to pass to the task
-     * @param task the task to run while pinned (must not be {@code null})
-     * @return the result of the task
-     * @param <T> the type of the first argument
-     * @param <U> the type of the second argument
-     * @param <R> the return type
-     * @throws UnsupportedOperationException if Loomania is not installed
-     */
-    public static <T, U, R> R doPinned(T arg1, U arg2, BiFunction<T, U, R> task) {
-        throw Nope.nope();
-    }
-
-    /**
-     * Run the given task with the virtual thread pinned to the carrier.
-     * This prevents any form of preemption during the execution of {@code task}.
-     *
-     * @param arg the argument to pass to the task
-     * @param task the task to run while pinned (must not be {@code null})
-     * @return the result of the task
-     * @param <T> the type of the argument
-     * @param <R> the return type
-     * @throws UnsupportedOperationException if Loomania is not installed
-     */
-    public static <T, R> R doPinned(T arg, Function<T, R> task) {
-        throw Nope.nope();
-    }
-
-    /**
-     * Run the given task with the virtual thread pinned to the carrier.
-     * This prevents any form of preemption during the execution of {@code task}.
-     *
-     * @param task the task to run while pinned (must not be {@code null})
-     * @return the result of the task
-     * @param <R> the return type
-     * @throws UnsupportedOperationException if Loomania is not installed
-     */
-    public static <R> R doPinned(Supplier<R> task) {
         throw Nope.nope();
     }
 
