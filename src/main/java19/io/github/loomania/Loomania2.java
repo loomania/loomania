@@ -262,6 +262,7 @@ public final class Loomania2 {
             Runnable task;
             // this is the max nanos which may elapse without talking to the scheduler
             long remaining = Math.max(-1L, Math.min(scheduler.initialize(this), MAX_DEADLINE));
+            long lastSchedulerCall = System.nanoTime();
             outer: for (;;) {
                 if (remaining == -1) for (;;) {
                     // we do not need to talk to the scheduler until we are out of tasks to execute
@@ -277,9 +278,13 @@ public final class Loomania2 {
                     sharedQueue.removeIf(bulkRemover);
 
                     if (localQueue.isEmpty()) {
+                        if (isTerminatedState(state)) {
+                            return;
+                        }
 
                         // try the scheduler for more tasks
-                        remaining = Math.max(-1L, Math.min(scheduler.unparkReadyThreads(), MAX_DEADLINE));
+                        remaining = Math.max(-1L, Math.min(scheduler.unparkReadyThreadsOrWait(), MAX_DEADLINE));
+                        lastSchedulerCall = System.nanoTime();
                         continue outer;
                     }
                 } else for (;;) {
@@ -289,10 +294,32 @@ public final class Loomania2 {
                     task = localQueue.poll();
                     if (task != null) {
                         safeRun(task);
+                        if ((System.nanoTime() - lastSchedulerCall) >= remaining) {
+                            // call into the scheduler
+                            remaining = Math.max(-1L, Math.min(scheduler.unparkReadyThreads(), MAX_DEADLINE));
+                            lastSchedulerCall = System.nanoTime();
+                        }
                         continue;
                     }
 
                     sharedQueue.removeIf(bulkRemover);
+
+                    if (localQueue.isEmpty()) {
+                        if (isTerminatedState(state)) {
+                            return;
+                        }
+
+                        // try the scheduler for more tasks
+                        remaining = Math.max(-1L, Math.min(scheduler.unparkReadyThreadsOrWait(), MAX_DEADLINE));
+                        lastSchedulerCall = System.nanoTime();
+                        continue outer;
+                    }
+
+                    if ((System.nanoTime() - lastSchedulerCall) >= remaining) {
+                        // call into the scheduler
+                        remaining = Math.max(-1L, Math.min(scheduler.unparkReadyThreads(), MAX_DEADLINE));
+                        lastSchedulerCall = System.nanoTime();
+                    }
                 }
             }
         }

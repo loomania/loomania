@@ -24,6 +24,15 @@
         <version.versions-maven-plugin>2.9.0</version.versions-maven-plugin>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.9.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <name>Loomania</name>
     <description>A series of questionable hacks to allow for unconventional experimentation with Loom</description>
     <url>https://github.com/dmlloyd/loomania</url>
