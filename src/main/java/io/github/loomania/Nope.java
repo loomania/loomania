@@ -11,6 +11,13 @@ final class Nope {
     }
 
     static String nopeMsg() {
-        return "Requires Java 19 or later with `--enable-preview`, `--add-opens=java.base/java.lang=ALL-UNNAMED`, and `--add-opens=java.base/jdk.internal.vm=ALL-UNNAMED`";
+        int major = Runtime.version().feature();
+        if (major < 19) {
+            return "Requires Java 19 or later";
+        } else if (major < 21) {
+            return "Requires `--enable-preview`, `--add-opens=java.base/java.lang=ALL-UNNAMED`, and `--add-opens=java.base/jdk.internal.vm=ALL-UNNAMED`";
+        } else {
+            return "Requires `--add-opens=java.base/java.lang=ALL-UNNAMED` and `--add-opens=java.base/jdk.internal.vm=ALL-UNNAMED`";
+        }
     }
 }

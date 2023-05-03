@@ -14,6 +14,7 @@
         <version.build-helper-maven-plugin>3.2.0</version.build-helper-maven-plugin>
         <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
         <version.maven-compiler-plugin>3.10.1</version.maven-compiler-plugin>
+        <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>
         <version.maven-gpg-plugin>3.0.1</version.maven-gpg-plugin>
         <version.maven-install-plugin>2.5.2</version.maven-install-plugin>
         <version.maven-jar-plugin>3.2.2</version.maven-jar-plugin>
@@ -94,9 +95,6 @@
                         <id>default-testCompile</id>
                         <configuration>
                             <release>19</release>
-                            <compilerArgs>
-                                <compilerArg>--enable-preview</compilerArg>
-                            </compilerArgs>
                         </configuration>
                     </execution>
                     <execution>
@@ -106,14 +104,59 @@
                             <goal>compile</goal>
                         </goals>
                         <configuration>
-                            <release>19</release>
+                            <source>19</source>
+                            <target>19</target>
                             <compileSourceRoots>
-                                <compileSourceRoot>${project.basedir}/src/main/java19</compileSourceRoot>
+                                <compileSourceRoot>${project.build.directory}/java19-sources</compileSourceRoot>
                             </compileSourceRoots>
-                            <multiReleaseOutput>true</multiReleaseOutput>
+                            <compilePath>${project.build.outputDirectory}</compilePath>
+                            <outputDirectory>${project.build.directory}/java19-classes</outputDirectory>
                             <compilerArgs>
-                                <compilerArg>--enable-preview</compilerArg>
+                                <compilerArg>--add-exports=java.base/jdk.internal.vm=ALL-UNNAMED</compilerArg>
                             </compilerArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${version.maven-resources-plugin}</version>
+                <executions>
+                    <execution>
+                        <id>copy-java19-sources</id>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/java19-sources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/java19</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.sourceDirectory}</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-java19-classes</id>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <phase>process-classes</phase>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/META-INF/versions/19</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/java19-classes</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
                         </configuration>
                     </execution>
                 </executions>
@@ -238,6 +281,12 @@
                     <includes>
                         <include>**/*TestCase.java</include>
                     </includes>
+                    <argLine>--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/jdk.internal.vm=ALL-UNNAMED</argLine>
+                    <trimStackTrace>false</trimStackTrace>
+                    <classesDirectory>target/META-INF/versions/19</classesDirectory>
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>target/test-classes</additionalClasspathElement>
+                    </additionalClasspathElements>
                 </configuration>
             </plugin>
         </plugins>

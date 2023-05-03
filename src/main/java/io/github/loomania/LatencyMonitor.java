@@ -5,7 +5,7 @@ import java.util.function.LongConsumer;
 
 /**
  * A reusable latency monitor.
- * Latency monitors are reusable but is not thread-safe.
+ * Latency monitors are reusable but not thread-safe.
  * This class serves as a simple example and need not live in this repository.
  */
 public final class LatencyMonitor {

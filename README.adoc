@@ -20,11 +20,12 @@ Without *all* of these flags, any Loomania operation will fail by throwing `Unsu
 
 === The code
 
-To use Loomania, use methods on the `io.github.loomania.Loomania` class or `io.github.loomania.Loomania2` class.
+To use Loomania, use methods on the `io.github.loomania.Loomania` class.
 
 * `isInstalled()` - returns `true` if Loomania is usable in the current process.
-* `Loomania#enterVirtuality(Consumer<VirtualThreadManager>)` - makes the current thread into a carrier thread, executing the given consumer in a virtual thread. The carrier continues to run until `VirtualThreadManager#close()` is called, at which point it will (theoretically) drain the remaining virtual threads from the pool and cause the outer `enterVirtuality()` call to return. This is known as "approach #1".
-* `Loomania2#enterVirtuality(EventLoopScheduler)` - makes the current thread into a carrier thread, using giving the supplied event loop scheduler an executor it can use to create new virtual thread tasks along with providing various methods to interact with an event loop scheduler.
+* `Loomania#newEventLoopExecutorService(ThreadFactory, EventLoop, ExecutorServiceListener)` - constructs a new event loop based executor service using the given event loop handler and carrier thread factory. The carrier thread factory is used to construct the carrier thread, which is then started. The given `ExecutorServiceListener` can be used to perform actions when the executor service is shut down. The new executor service is returned.
+* `Loomania#newVirtualThreadExecutor(ExecutorService, String, ExecutorServiceListener)` - constructs a new virtual thread executor with the given name which uses the given delegate executor service to schedule tasks. The new executor service is returned. *This API is unlikely to be supported in the long term.*
+* `Loomania#newJdkVirtualThreadExecutorBuilder()` - this method constructs a new builder which can be used to configure a fork-join-pool-based virtual thread executor. The builder can be used to configure the parameters of the fork-join pool used for scheduling. The new executor service is returned.
 
 More complete https://loomania.github.io/loomania/apidocs[API JavaDoc can be found here].
 
@@ -32,8 +33,9 @@ More complete https://loomania.github.io/loomania/apidocs[API JavaDoc can be fou
 
 This trivial example can be run using `jshell` like this:
 
-```console
-$ jshell --class-path path/to/loomania-1.2.jar \
+[source,console]
+----
+$ jshell --class-path path/to/loomania-2.0.jar \
     --enable-preview \
     -R--add-opens=java.base/java.lang=ALL-UNNAMED \
     -R--add-opens=java.base/jdk.internal.vm=ALL-UNNAMED
@@ -43,22 +45,23 @@ $ jshell --class-path path/to/loomania-1.2.jar \
 
 jshell> import io.github.loomania.*
 
-jshell> Loomania.enterVirtuality(vtm -> vtm.execute(() -> { System.out.println("hello!"); vtm.close();}))
+jshell> Loomania.newVirtualThreadExecutor(Executors.newFixedThreadPool(10), "My pool", ExecutorServiceListener.EMPTY).execute(() -> { System.out.println("hello!"); })
 hello!
 
 jshell>
-```
+----
 
-Note that without the `close` call, the call to `enterVirtuality` will never return.
+Note that on Java 20 or later, the `--enable-preview` flag is not needed.
 
 == Maven
 
 The maven artifact coordinates are:
 
-```xml
+[source,xml]
+----
 <dependency>
-    <groupId>io.github.dmlloyd.loomania</groupId>
+    <groupId>io.github.loomania</groupId>
     <artifactId>loomania</artifactId>
-    <version>1.2</version>
+    <version>2.0</version>
 </dependency>
-```
+----

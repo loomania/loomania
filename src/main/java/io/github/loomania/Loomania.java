@@ -1,9 +1,11 @@
 package io.github.loomania;
 
-import java.util.function.Consumer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 /**
- * Access to Loom internals for experimental munging.
+ * Access to Loom internals for experimental munging (approach #2).
+ * This approach strives for minimality, and to maximize safety.
  */
 public final class Loomania {
 
@@ -16,47 +18,19 @@ public final class Loomania {
         return false;
     }
 
-    /**
-     * Determine whether the given thread is virtual.
-     *
-     * @param thread the thread (must not be {@code null})
-     * @return {@code true} if the thread is virtual, {@code false} otherwise
-     * @throws UnsupportedOperationException if Loomania is not installed
-     */
-    public static boolean isVirtual(Thread thread) {
+    public static ExecutorService newEventLoopExecutorService(ThreadFactory carrierThreadFactory, EventLoop eventLoop, ExecutorServiceListener listener) {
         throw Nope.nope();
     }
 
-    /**
-     * Get the carrier thread for the current thread.
-     *
-     * @return the carrier thread, or the current thread if it is not virtual
-     * @throws UnsupportedOperationException if Loomania is not installed
-     */
-    public static Thread currentCarrierThread() {
+    public static ExecutorService newVirtualThreadExecutor(ExecutorService delegate, String name, ExecutorServiceListener listener) {
         throw Nope.nope();
     }
 
-    /**
-     * Cause the current thread to become a carrier for virtual threads until the virtual thread manager is terminated.
-     * The given runner is run within a virtual thread on this carrier.
-     *
-     * @param mainThreadRunner the main thread runner (must not be {@code null})
-     * @throws UnsupportedOperationException if Loomania is not installed
-     */
-    public static void enterVirtuality(Consumer<VirtualThreadManager> mainThreadRunner) {
+    public static JdkVirtualThreadExecutorBuilder newJdkVirtualThreadExecutorBuilder() {
         throw Nope.nope();
     }
 
-    /**
-     * Cause the current thread to become a carrier for virtual threads until the virtual thread manager is terminated.
-     * The given runner is run within a virtual thread on this carrier.
-     *
-     * @param mainThreadRunner the main thread runner (must not be {@code null})
-     * @param unparker a {@code Runnable} to call when the carrier thread accepts a new task, or {@code null} for none
-     * @throws UnsupportedOperationException if Loomania is not installed
-     */
-    public static void enterVirtuality(Consumer<VirtualThreadManager> mainThreadRunner, Runnable unparker) {
+    static ExecutorService buildVirtualThreadFactory(JdkVirtualThreadExecutorBuilder builder) {
         throw Nope.nope();
     }
 
