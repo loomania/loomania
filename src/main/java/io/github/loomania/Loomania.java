@@ -1,7 +1,6 @@
 package io.github.loomania;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * Access to Loom internals for experimental munging (approach #2).
@@ -21,12 +20,12 @@ public final class Loomania {
     /**
      * Create a single-threaded virtual thread executor service which uses an event loop to schedule tasks.
      *
-     * @param carrierThreadFactory the thread factory for carrier threads (must not be {@code null})
+     * @param carrier the context to propagate to virtual threads, or {@code null} for none
      * @param eventLoop the event loop implementation (must not be {@code null})
      * @param listener the executor service listener (must not be {@code null}, may be {@link ExecutorServiceListener#EMPTY})
      * @return the new executor service (not {@code null})
      */
-    public static ExecutorService newEventLoopExecutorService(ThreadFactory carrierThreadFactory, EventLoop eventLoop, ExecutorServiceListener listener) {
+    public static ExecutorService newEventLoopExecutorService(ScopedValue_Temporary.Carrier carrier, EventLoop eventLoop, ExecutorServiceListener listener) {
         throw Nope.nope();
     }
 
@@ -34,12 +33,13 @@ public final class Loomania {
      * Create a virtual thread executor which uses the given delegate executor service to schedule tasks.
      * Note that the executor service must be "well-behaved" in order to prevent situations such as deadlocks.
      *
+     * @param carrier the context to propagate to virtual threads, or {@code null} for none
      * @param delegate the delegate executor service (must not be {@code null})
      * @param name the name of the new executor (must not be {@code null})
      * @param listener the executor service listener (must not be {@code null}, may be {@link ExecutorServiceListener#EMPTY})
      * @return the new executor service (not {@code null})
      */
-    public static ExecutorService newVirtualThreadExecutor(ExecutorService delegate, String name, ExecutorServiceListener listener) {
+    public static ExecutorService newVirtualThreadExecutor(ScopedValue_Temporary.Carrier carrier, ExecutorService delegate, String name, ExecutorServiceListener listener) {
         throw Nope.nope();
     }
 

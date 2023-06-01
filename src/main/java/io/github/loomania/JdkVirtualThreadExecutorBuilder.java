@@ -11,6 +11,7 @@ public final class JdkVirtualThreadExecutorBuilder {
     static final Duration DEFAULT_KEEP_ALIVE = Duration.ofSeconds(30);
     static final int DEFAULT_MAX = 0x7ff;
 
+    private ScopedValue_Temporary.Carrier carrier;
     private int parallelism = Math.min(DEFAULT_MAX, Runtime.getRuntime().availableProcessors());
     private int corePoolSize = 0;
     private int maximumPoolSize = DEFAULT_MAX;
@@ -19,6 +20,26 @@ public final class JdkVirtualThreadExecutorBuilder {
     private String name = "virtual thread";
 
     JdkVirtualThreadExecutorBuilder() {}
+
+    /**
+     * Get the context to propagate to each virtual thread.
+     *
+     * @return the context to propagate to each virtual thread, or {@code null} for none
+     */
+    public ScopedValue_Temporary.Carrier getCarrier() {
+        return carrier;
+    }
+
+    /**
+     * Set the context to propagate to each virtual thread.
+     *
+     * @param carrier the context to propagate to each virtual thread, or {@code null} for none
+     * @return this builder (not {@code null})
+     */
+    public JdkVirtualThreadExecutorBuilder setCarrier(final ScopedValue_Temporary.Carrier carrier) {
+        this.carrier = carrier;
+        return this;
+    }
 
     /**
      * Get the parallelism value set on this builder.
