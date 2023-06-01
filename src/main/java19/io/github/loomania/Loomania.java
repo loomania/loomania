@@ -63,12 +63,7 @@ public final class Loomania {
         return ok;
     }
 
-    public static boolean isVirtual(Thread thread) {
-        if (! ok) throw Nope.nope();
-        return thread != null && thread.isVirtual();
-    }
-
-    public static Thread currentCarrierThread() {
+    static Thread currentCarrierThread() {
         if (! ok) throw Nope.nope();
         try {
             Thread currentThread = currentThread();
@@ -105,20 +100,19 @@ public final class Loomania {
             keepAliveMillis,
             TimeUnit.MILLISECONDS
         );
-        return newVirtualThreadExecutor(fjp, name, ExecutorServiceListener.EMPTY);
+        return newVirtualThreadExecutor(builder.getCarrier(), fjp, name, ExecutorServiceListener.EMPTY);
     }
 
-    public static ExecutorService newEventLoopExecutorService(ThreadFactory carrierThreadFactory, EventLoop eventLoop, ExecutorServiceListener listener) {
-        Objects.requireNonNull(carrierThreadFactory, "carrierThreadFactory");
+    public static ExecutorService newEventLoopExecutorService(ScopedValue_Temporary.Carrier carrier, EventLoop eventLoop, ExecutorServiceListener listener) {
         Objects.requireNonNull(eventLoop, "eventLoop");
         Objects.requireNonNull(listener, "listener");
-        EventLoopExecutorService eventLoopExecutor = new EventLoopExecutorService(carrierThreadFactory, eventLoop);
-        VirtualThreadExecutorService virtualThreadExecutor = (VirtualThreadExecutorService) newVirtualThreadExecutor(eventLoopExecutor, "event loop", listener);
+        EventLoopExecutorService eventLoopExecutor = new EventLoopExecutorService(eventLoop);
+        VirtualThreadExecutorService virtualThreadExecutor = (VirtualThreadExecutorService) newVirtualThreadExecutor(carrier, eventLoopExecutor, "event loop", listener);
         eventLoopExecutor.setVirtualThreadExecutor(virtualThreadExecutor);
         return virtualThreadExecutor;
     }
 
-    public static ExecutorService newVirtualThreadExecutor(ExecutorService delegate, String name, ExecutorServiceListener listener) {
+    public static ExecutorService newVirtualThreadExecutor(ScopedValue_Temporary.Carrier carrier, ExecutorService delegate, String name, ExecutorServiceListener listener) {
         Objects.requireNonNull(delegate, "delegate");
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(listener, "listener");
@@ -126,7 +120,7 @@ public final class Loomania {
         Thread.Builder.OfVirtual ov = newVirtualThreadFactory(delegate);
         ov.name(name);
         factory = ov.factory();
-        return new VirtualThreadExecutorService(factory, delegate, listener);
+        return new VirtualThreadExecutorService(carrier, factory, delegate, listener);
     }
 
     private static Thread.Builder.OfVirtual newVirtualThreadFactory(Executor executor) {
@@ -167,6 +161,7 @@ public final class Loomania {
         final ThreadFactory virtualThreadFactory;
         final ExecutorService delegateService;
         final ExecutorServiceListener listener;
+        final ScopedValue_Temporary.Carrier carrier;
 
         @SuppressWarnings("unused") // stateHandle
         private volatile long state;
@@ -192,7 +187,8 @@ public final class Loomania {
             }
         };
 
-        VirtualThreadExecutorService(final ThreadFactory virtualThreadFactory, final ExecutorService delegateService, final ExecutorServiceListener listener) {
+        VirtualThreadExecutorService(final ScopedValue_Temporary.Carrier carrier, final ThreadFactory virtualThreadFactory, final ExecutorService delegateService, final ExecutorServiceListener listener) {
+            this.carrier = carrier;
             this.virtualThreadFactory = virtualThreadFactory;
             this.delegateService = delegateService;
             this.listener = listener;
@@ -297,8 +293,8 @@ public final class Loomania {
             return delegateService.awaitTermination(timeout, unit);
         }
 
-        public void execute(final Runnable command) {
-            startThreadWithContainer(virtualThreadFactory.newThread(command), threadContainer);
+        public void execute(Runnable command) {
+            startThreadWithContainer(virtualThreadFactory.newThread(carrier != null ? () -> carrier.run(command) : command), threadContainer);
         }
 
         private long compareAndExchangeState(final long oldState, final long newState) {
@@ -353,8 +349,9 @@ public final class Loomania {
         private volatile Runnable eventLoopThreadContinuation;
         private volatile boolean continueEventLoop;
 
-        EventLoopExecutorService(ThreadFactory carrierThreadFactory, EventLoop eventLoop) {
-            carrierThread = carrierThreadFactory.newThread(this::carrierThreadBody);
+        EventLoopExecutorService(EventLoop eventLoop) {
+            carrierThread = new Thread(this::carrierThreadBody, "Event loop thread");
+            carrierThread.setDaemon(true);
             carrierThread.start();
             this.eventLoop = eventLoop;
         }

@@ -33,7 +33,7 @@ public final class SimplexNioTestCase {
                     source.register(selector, SelectionKey.OP_READ);
                     sink.register(selector, SelectionKey.OP_WRITE);
                     CountDownLatch steps = new CountDownLatch(2);
-                    try (ExecutorService executorService = Loomania.newEventLoopExecutorService(Thread::new, new EventLoop() {
+                    try (ExecutorService executorService = Loomania.newEventLoopExecutorService(null, new EventLoop() {
                         public long unparkReadyThreadsOrWaitNanos(final long maxNanos) {
                             System.out.println("Unpark ready threads, or wait nanos");
                             try {
