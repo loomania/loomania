@@ -27,7 +27,7 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public final class Loomania {
+final class LoomaniaImpl {
 
     private static final boolean ok;
     private static final MethodHandle currentCarrierThread;
@@ -59,7 +59,7 @@ public final class Loomania {
         threadStartWithContainer = tswc;
     }
 
-    public static boolean isInstalled() {
+    static boolean isInstalled() {
         return ok;
     }
 
@@ -75,7 +75,7 @@ public final class Loomania {
         }
     }
 
-    public static JdkVirtualThreadExecutorBuilder newJdkVirtualThreadExecutorBuilder() {
+    static JdkVirtualThreadExecutorBuilder newJdkVirtualThreadExecutorBuilder() {
         if (! ok) throw Nope.nope();
         return new JdkVirtualThreadExecutorBuilder();
     }
@@ -103,7 +103,7 @@ public final class Loomania {
         return newVirtualThreadExecutor(builder.getCarrier(), fjp, name, ExecutorServiceListener.EMPTY);
     }
 
-    public static ExecutorService newEventLoopExecutorService(ScopedValue_Temporary.Carrier carrier, EventLoop eventLoop, ExecutorServiceListener listener) {
+    static ExecutorService newEventLoopExecutorService(ScopedValue_Temporary.Carrier carrier, EventLoop eventLoop, ExecutorServiceListener listener) {
         Objects.requireNonNull(eventLoop, "eventLoop");
         Objects.requireNonNull(listener, "listener");
         EventLoopExecutorService eventLoopExecutor = new EventLoopExecutorService(eventLoop);
@@ -112,7 +112,7 @@ public final class Loomania {
         return virtualThreadExecutor;
     }
 
-    public static ExecutorService newVirtualThreadExecutor(ScopedValue_Temporary.Carrier carrier, ExecutorService delegate, String name, ExecutorServiceListener listener) {
+    static ExecutorService newVirtualThreadExecutor(ScopedValue_Temporary.Carrier carrier, ExecutorService delegate, String name, ExecutorServiceListener listener) {
         Objects.requireNonNull(delegate, "delegate");
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(listener, "listener");
@@ -133,7 +133,7 @@ public final class Loomania {
         }
     }
 
-    private Loomania() {
+    private LoomaniaImpl() {
     }
 
     private static void startThreadWithContainer(final Thread thread, final jdk.internal.vm.ThreadContainer threadContainer) {

@@ -12,9 +12,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <version.build-helper-maven-plugin>3.2.0</version.build-helper-maven-plugin>
-        <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
         <version.maven-compiler-plugin>3.10.1</version.maven-compiler-plugin>
-        <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>
+        <version.maven-enforcer-plugin>3.3.0</version.maven-enforcer-plugin>
         <version.maven-gpg-plugin>3.0.1</version.maven-gpg-plugin>
         <version.maven-install-plugin>2.5.2</version.maven-install-plugin>
         <version.maven-jar-plugin>3.2.2</version.maven-jar-plugin>
@@ -88,7 +87,11 @@
                     <execution>
                         <id>default-compile</id>
                         <configuration>
-                            <release>11</release>
+                            <source>19</source>
+                            <target>19</target>
+                            <compilerArgs>
+                                <compilerArg>--add-exports=java.base/jdk.internal.vm=ALL-UNNAMED</compilerArg>
+                            </compilerArgs>
                         </configuration>
                     </execution>
                     <execution>
@@ -98,65 +101,16 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>java19-compile</id>
+                        <id>java11-recompile</id>
                         <phase>compile</phase>
                         <goals>
                             <goal>compile</goal>
                         </goals>
                         <configuration>
-                            <source>19</source>
-                            <target>19</target>
-                            <compileSourceRoots>
-                                <compileSourceRoot>${project.build.directory}/java19-sources</compileSourceRoot>
-                            </compileSourceRoots>
-                            <compilePath>${project.build.outputDirectory}</compilePath>
-                            <outputDirectory>${project.build.directory}/java19-classes</outputDirectory>
-                            <compilerArgs>
-                                <compilerArg>--add-exports=java.base/jdk.internal.vm=ALL-UNNAMED</compilerArg>
-                            </compilerArgs>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>${version.maven-resources-plugin}</version>
-                <executions>
-                    <execution>
-                        <id>copy-java19-sources</id>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/java19-sources</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/src/main/java19</directory>
-                                    <filtering>false</filtering>
-                                </resource>
-                                <resource>
-                                    <directory>${project.build.sourceDirectory}</directory>
-                                    <filtering>false</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy-java19-classes</id>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <phase>process-classes</phase>
-                        <configuration>
-                            <outputDirectory>${project.build.outputDirectory}/META-INF/versions/19</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.build.directory}/java19-classes</directory>
-                                    <filtering>false</filtering>
-                                </resource>
-                            </resources>
+                            <release>11</release>
+                            <excludes>
+                                <exclude>io/github/loomania/LoomaniaImpl.java</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
@@ -172,22 +126,6 @@
             <plugin>
                 <artifactId>maven-install-plugin</artifactId>
                 <version>${version.maven-install-plugin}</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${version.maven-jar-plugin}</version>
-                <executions>
-                    <execution>
-                        <id>default-jar</id>
-                        <configuration>
-                            <archive>
-                                <manifestEntries>
-                                    <Multi-Release>true</Multi-Release>
-                                </manifestEntries>
-                            </archive>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-gpg-plugin</artifactId>
@@ -223,58 +161,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>${version.maven-antrun-plugin}</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources-our-way</id>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <target>
-                                <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar">
-                                    <fileset dir="${project.basedir}/src/main/java" includes="**/*.java" excludes="**/Loomania.java"/>
-                                    <fileset dir="${project.basedir}/src/main/java19" includes="**/*.java"/>
-                                    <zipfileset prefix="META-INF/maven/${project.groupId}/${project.artifactId}/" dir="${project.build.directory}/maven-archiver" includes="pom.properties"/>
-                                    <zipfileset prefix="META-INF/maven/${project.groupId}/${project.artifactId}/" dir="${project.basedir}" includes="pom.xml"/>
-
-                                    <manifest>
-                                        <attribute name="Created-By" value="Maven Source Plugin ${version.maven-source-plugin}"/>
-                                        <attribute name="Actually-Created-By" value="Antrun plugin because Maven is bad"/>
-                                        <attribute name="Build-Jdk-Spec" value="19"/>
-                                    </manifest>
-                                </jar>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>${version.build-helper-maven-plugin}</version>
-                <executions>
-                    <execution>
-                        <id>make-sure-sources-are-attached</id>
-                        <goals>
-                            <goal>attach-artifact</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <artifacts>
-                                <artifact>
-                                    <file>${project.build.directory}/${project.build.finalName}-sources.jar</file>
-                                    <classifier>sources</classifier>
-                                    <type>jar</type>
-                                </artifact>
-                            </artifacts>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${version.maven-surefire-plugin}</version>
                 <configuration>
@@ -283,11 +169,27 @@
                     </includes>
                     <argLine>--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/jdk.internal.vm=ALL-UNNAMED</argLine>
                     <trimStackTrace>false</trimStackTrace>
-                    <classesDirectory>target/META-INF/versions/19</classesDirectory>
-                    <additionalClasspathElements>
-                        <additionalClasspathElement>target/test-classes</additionalClasspathElement>
-                    </additionalClasspathElements>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${version.maven-enforcer-plugin}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-java</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <message>This project runs on Java 11+, but requires Java 21 to compile.</message>
+                                    <version>21</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

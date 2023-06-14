@@ -169,6 +169,6 @@ public final class JdkVirtualThreadExecutorBuilder {
      * @return the executor service (not {@code null})
      */
     public ExecutorService build() {
-        return Loomania.buildVirtualThreadFactory(this);
+        return LoomaniaImpl.buildVirtualThreadFactory(this);
     }
 }
