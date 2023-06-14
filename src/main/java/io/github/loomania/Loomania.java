@@ -8,13 +8,23 @@ import java.util.concurrent.ExecutorService;
  */
 public final class Loomania {
 
+    private static final boolean installed;
+
+    static {
+        boolean ok = false;
+        try {
+            ok = LoomaniaImpl.isInstalled();
+        } catch (Throwable ignored) {}
+        installed = ok;
+    }
+
     /**
      * Determine if Loomania is installed.
      *
      * @return {@code true} if installed, {@code false} otherwise
      */
     public static boolean isInstalled() {
-        return false;
+        return installed;
     }
 
     /**
@@ -26,7 +36,8 @@ public final class Loomania {
      * @return the new executor service (not {@code null})
      */
     public static ExecutorService newEventLoopExecutorService(ScopedValue_Temporary.Carrier carrier, EventLoop eventLoop, ExecutorServiceListener listener) {
-        throw Nope.nope();
+        if (! installed) throw Nope.nope();
+        return LoomaniaImpl.newEventLoopExecutorService(carrier, eventLoop, listener);
     }
 
     /**
@@ -40,7 +51,8 @@ public final class Loomania {
      * @return the new executor service (not {@code null})
      */
     public static ExecutorService newVirtualThreadExecutor(ScopedValue_Temporary.Carrier carrier, ExecutorService delegate, String name, ExecutorServiceListener listener) {
-        throw Nope.nope();
+        if (! installed) throw Nope.nope();
+        return LoomaniaImpl.newVirtualThreadExecutor(carrier, delegate, name, listener);
     }
 
     /**
@@ -49,11 +61,8 @@ public final class Loomania {
      * @return the new builder (not {@code null})
      */
     public static JdkVirtualThreadExecutorBuilder newJdkVirtualThreadExecutorBuilder() {
-        throw Nope.nope();
-    }
-
-    static ExecutorService buildVirtualThreadFactory(JdkVirtualThreadExecutorBuilder builder) {
-        throw Nope.nope();
+        if (! installed) throw Nope.nope();
+        return LoomaniaImpl.newJdkVirtualThreadExecutorBuilder();
     }
 
     private Loomania() {}
