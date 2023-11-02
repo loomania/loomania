@@ -10,17 +10,12 @@ public interface EventLoop {
      * operation returns) or if it was awakened by way of {@code #unpark()}.
      * If tasks are immediately ready, then this method need not actually block at all, but should in this case unpark all the ready threads.
      * If this method throws an exception, it will be ignored.
-     * The returned value controls the amount of time that should be spent processing unparked threads before polling
-     * the event loop again; the actual time elapsed may be more or less than the returned time depending on the
-     * state of the scheduler queue.
-     * If a negative number is returned, tasks will be processed until none remain before calling back into the event loop.
-     * If {@code 0} is returned, the event loop will be called back as soon as possible.
+     * When this method returns, another event loop method will immediately be called.
+     * Therefore, this method should park for some amount of time after unparking ready threads.
      *
      * @param maxNanos the maximum number of nanoseconds to park
-     * @return the number of nanoseconds (possibly zero) that should be allowed to elapse processing tasks before the scheduler
-     *      should attempt to call into the event loop again, or a negative value to process all remaining tasks first
      */
-    long unparkReadyThreadsOrWaitNanos(long maxNanos);
+    void unparkReadyThreadsOrWaitNanos(long maxNanos);
 
     /**
      * Unpark any ready threads, waiting indefinitely for threads to become ready.
@@ -28,31 +23,19 @@ public interface EventLoop {
      * operation returns) or if it was awakened by way of {@code #unpark()}.
      * If tasks are immediately ready, then this method need not actually block at all, but should in this case unpark all the ready threads.
      * If this method throws an exception, it will be ignored.
-     * The returned value controls the amount of time that should be spent processing unparked threads before polling
-     * the event loop again; the actual time elapsed may be more or less than the returned time depending on the
-     * state of the scheduler queue.
-     * If a negative number is returned, tasks will be processed until none remain before calling back into the event loop.
-     * If {@code 0} is returned, the event loop will be called back as soon as possible.
-     *
-     * @return the number of nanoseconds (possibly zero) that should be allowed to elapse processing tasks before the scheduler
-     *      should attempt to call into the event loop again, or a negative value to process all remaining tasks first
+     * When this method returns, another event loop method will immediately be called.
+     * Therefore, this method should park for some amount of time after unparking ready threads.
      */
-    long unparkReadyThreadsOrWait();
+    void unparkReadyThreadsOrWait();
 
     /**
      * Unpark any ready threads without blocking.
      * This method is called when the deadline for unparking ready threads has elapsed, but other virtual threads are also ready.
      * If this method throws an exception, it will be ignored.
-     * The returned value controls the amount of time that should be spent processing unparked threads before polling
-     * the event loop again; the actual time elapsed may be more or less than the returned time depending on the
-     * state of the scheduler queue.
-     * If a negative number is returned, tasks will be processed until none remain before calling back into the event loop.
-     * If {@code 0} is returned, the event loop will be called back as soon as possible.
-     *
-     * @return the number of nanoseconds (possibly zero) that should be allowed to elapse processing tasks before the scheduler
-     *      should attempt to call into the event loop again, or a negative value to process all remaining tasks first
+     * When this method returns, another event loop method will immediately be called.
+     * Therefore, this method should park for some amount of time after unparking ready threads.
      */
-    long unparkReadyThreads();
+    void unparkReadyThreads();
 
     /**
      * Wake up the event loop. This might entail waking up a selector, writing to a file descriptor, or

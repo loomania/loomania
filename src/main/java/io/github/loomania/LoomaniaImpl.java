@@ -451,30 +451,19 @@ final class LoomaniaImpl {
         private void eventLoopBody() {
             eventLoopThread = currentThread();
             VarHandle.fullFence();
-            long maxWaitTime;
             // loop infinitely; note that when the outer carrier thread exits, this thread will eventually just evaporate
             for (;;) {
                 // this has to be atomic to avoid missing commands
                 // todo: a weaker mode?
                 int cmd = (int) eventLoopCommandHandle.getAndSet(this, CMD_NO_WAIT);
                 try {
-                    maxWaitTime = switch (cmd) {
+                    switch (cmd) {
                         case CMD_WAIT -> eventLoop.unparkReadyThreadsOrWait();
                         case CMD_NO_WAIT -> eventLoop.unparkReadyThreads();
                         case CMD_WAIT_TIMED -> throw new IllegalStateException("Timed wait not used yet");
                         default -> throw new IllegalStateException();
-                    };
+                    }
                 } catch (Throwable ignored) {
-                    maxWaitTime = -1;
-                }
-                if (maxWaitTime < 0) {
-                    LockSupport.park();
-                } else if (maxWaitTime > 0) {
-                    // todo: register the timed-unpark to the actual carrier thread scheduler to avoid thread tennis
-                    LockSupport.parkNanos(maxWaitTime);
-                } else {
-                    // Queue fairly (only in this situation)
-                    localQueue.add(eventLoopThreadContinuation);
                 }
             }
         }
