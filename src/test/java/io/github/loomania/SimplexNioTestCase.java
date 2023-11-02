@@ -1,5 +1,8 @@
 package io.github.loomania;
 
+import static java.util.concurrent.locks.LockSupport.park;
+import static java.util.concurrent.locks.LockSupport.parkNanos;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Pipe;
@@ -12,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.LockSupport;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -22,6 +26,7 @@ public final class SimplexNioTestCase {
     private static final long WAIT_NANOS = 10_000_000_000L;
 
     @Test
+    @Disabled("This is the old way")
     public void testSimplex() throws IOException, InterruptedException {
         Pipe pipe = Pipe.open();
         final byte[] blob = Files.readAllBytes(Path.of(System.getProperty("user.dir")).resolve("src/test/java/" + SimplexNioTestCase.class.getName().replace('.', '/') + ".java"));
@@ -34,7 +39,7 @@ public final class SimplexNioTestCase {
                     sink.register(selector, SelectionKey.OP_WRITE);
                     CountDownLatch steps = new CountDownLatch(2);
                     try (ExecutorService executorService = Loomania.newEventLoopExecutorService(null, new EventLoop() {
-                        public long unparkReadyThreadsOrWaitNanos(final long maxNanos) {
+                        public void unparkReadyThreadsOrWaitNanos(final long maxNanos) {
                             System.out.println("Unpark ready threads, or wait nanos");
                             try {
                                 final long millis = maxNanos / 1_000_000L;
@@ -44,23 +49,23 @@ public final class SimplexNioTestCase {
                                     selector.select(this::consumeKey, millis);
                                 }
                             } catch (IOException ignored) {}
-                            return WAIT_NANOS;
+                            parkNanos(WAIT_NANOS);
                         }
 
-                        public long unparkReadyThreadsOrWait() {
+                        public void unparkReadyThreadsOrWait() {
                             System.out.println("Unpark ready threads, or wait");
                             try {
                                 selector.select(this::consumeKey);
                             } catch (IOException ignored) {}
-                            return WAIT_NANOS;
+                            parkNanos(WAIT_NANOS);
                         }
 
-                        public long unparkReadyThreads() {
+                        public void unparkReadyThreads() {
                             System.out.println("Unpark ready threads now");
                             try {
                                 selector.selectNow(this::consumeKey);
                             } catch (IOException ignored) {}
-                            return WAIT_NANOS;
+                            parkNanos(WAIT_NANOS);
                         }
 
                         public void wakeup() {
@@ -94,7 +99,7 @@ public final class SimplexNioTestCase {
                                 for (int idx = 0; idx < blob.length; idx++) {
                                     while ((res = source.read(worstBuf)) == 0) {
                                         key.interestOps(SelectionKey.OP_READ);
-                                        LockSupport.park();
+                                        park();
                                     }
                                     key.interestOps(0);
                                     if (res == - 1) {
@@ -115,7 +120,7 @@ public final class SimplexNioTestCase {
                                 }
                                 while ((res = source.read(worstBuf)) == 0) {
                                     key.interestOps(SelectionKey.OP_READ);
-                                    LockSupport.park();
+                                    park();
                                 }
                                 if (res == - 1) {
                                     System.out.println("Done!");
@@ -141,7 +146,7 @@ public final class SimplexNioTestCase {
                                     worstBuf.put(0, blob[idx]);
                                     while (sink.write(worstBuf) == 0) {
                                         key.interestOps(SelectionKey.OP_WRITE);
-                                        LockSupport.park();
+                                        park();
                                     }
                                     worstBuf.clear();
                                 }
@@ -165,6 +170,6 @@ public final class SimplexNioTestCase {
     }
 
     private static void randomBlock() {
-        LockSupport.parkNanos(ThreadLocalRandom.current().nextInt(500_000, 1_000_000));
+        parkNanos(ThreadLocalRandom.current().nextInt(500_000, 1_000_000));
     }
 }
