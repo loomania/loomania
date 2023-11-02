@@ -65,3 +65,31 @@ The maven artifact coordinates are:
     <version>2.0</version>
 </dependency>
 ----
+
+
+== Non-pinning Selector
+
+The theory behind the non-pinning selector is that we have two actual selectors: one is the internal "real" selector, and one is an external "facade" selector.
+
+```mermaid
+sequenceDiagram
+    Carrier->>+EventLoopThread: unparkReadyThreadsOrWait()
+    note right of EventLoopThread: select()<br/>(add ready keys to queue)
+    EventLoopThread->>VirtualThread-unparker: parkNanos(xxx)
+    EventLoopThread-->>-Carrier: (yield)
+    Carrier->>+VThread1: (resume)
+    VThread1->>-Carrier: park()
+    Carrier->>+VThread2: (resume)
+    VThread2->>-Carrier: park()
+    Carrier->>+NettyEventLoop: (resume)
+    NettyEventLoop->>-Carrier: select (actually park)
+    VirtualThread-unparker->>+EventLoopThread: unpark()
+    EventLoopThread->>-Carrier: return
+    Carrier->>+EventLoopThread: unparkReadyThreadsOrWait()
+    note right of EventLoopThread: select()<br/>(add ready keys to queue)
+    EventLoopThread->>VirtualThread-unparker: parkNanos(xxx)
+    EventLoopThread-->>-Carrier: (yield)
+    Carrier->>+NettyEventLoop: (resume)
+    NettyEventLoop->>-Carrier: select (ready keys)
+    
+```
