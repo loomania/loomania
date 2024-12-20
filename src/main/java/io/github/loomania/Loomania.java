@@ -1,5 +1,6 @@
 package io.github.loomania;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -25,6 +26,26 @@ public final class Loomania {
      */
     public static boolean isInstalled() {
         return installed;
+    }
+
+    public static Executor getScheduler(Thread virtualThread) {
+        if (! installed) throw Nope.nope();
+        return LoomaniaImpl.getScheduler(virtualThread);
+    }
+
+    /**
+     * Get a new, unstarted virtual thread which uses the given scheduler.
+     *
+     * @param scheduler the scheduler, or {@code null} for the default
+     * @param name the thread name (must not be {@code null})
+     * @param inheritThreadLocals {@code true} to inherit thread locals, or {@code false} otherwise
+     * @param task the start task (must not be {@code null})
+     * @param handler the uncaught exception handler, or {@code null} to use the default
+     * @return a new, unstarted virtual thread (not {@code null})
+     */
+    public static Thread newVirtualThread(Executor scheduler, String name, boolean inheritThreadLocals, Runnable task, Thread.UncaughtExceptionHandler handler) {
+        if (! installed) throw Nope.nope();
+        return LoomaniaImpl.newVirtualThread(scheduler, name, inheritThreadLocals, task, handler);
     }
 
     /**

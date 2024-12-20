@@ -3,6 +3,7 @@ package io.github.loomania;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Thread.currentThread;
+import static java.lang.Thread.getDefaultUncaughtExceptionHandler;
 
 import java.lang.invoke.ConstantBootstraps;
 import java.lang.invoke.MethodHandle;
@@ -33,12 +34,14 @@ final class LoomaniaImpl {
     private static final MethodHandle currentCarrierThread;
     private static final MethodHandle virtualThreadFactory;
     private static final MethodHandle threadStartWithContainer;
+    private static final MethodHandle schedulerGetter;
 
     static {
         boolean isOk = false;
         MethodHandle ct = null;
         MethodHandle vtf = null;
         MethodHandle tswc = null;
+        MethodHandle sg = null;
         try {
             MethodHandles.Lookup thr = MethodHandles.privateLookupIn(Thread.class, MethodHandles.lookup());
             ct = thr.findStatic(Thread.class, "currentCarrierThread", MethodType.methodType(Thread.class));
@@ -48,6 +51,9 @@ final class LoomaniaImpl {
             vtf = vtf.asType(MethodType.methodType(Thread.Builder.OfVirtual.class, Executor.class));
             //void start(jdk.internal.vm.ThreadContainer container)
             tswc = thr.findVirtual(Thread.class, "start", MethodType.methodType(void.class, jdk.internal.vm.ThreadContainer.class));
+            Class<?> vtc = thr.findClass("java.lang.VirtualThread");
+            MethodHandles.Lookup vthr = MethodHandles.privateLookupIn(vtc, MethodHandles.lookup());
+            sg = vthr.findGetter(vtc, "scheduler", Executor.class).asType(MethodType.methodType(Executor.class, Thread.class));
             isOk = true;
         } catch (Exception | Error e) {
             // no good
@@ -57,6 +63,7 @@ final class LoomaniaImpl {
         currentCarrierThread = ct;
         virtualThreadFactory = vtf;
         threadStartWithContainer = tswc;
+        schedulerGetter = sg;
     }
 
     static boolean isInstalled() {
@@ -74,6 +81,21 @@ final class LoomaniaImpl {
             throw new UndeclaredThrowableException(e);
         }
     }
+
+    static Executor getScheduler(Thread virtualThread) {
+        if (! ok) throw Nope.nope();
+        if (! virtualThread.isVirtual()) {
+            throw new IllegalArgumentException("Not a virtual thread");
+        }
+        try {
+            return (Executor) schedulerGetter.invokeExact(virtualThread);
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new UndeclaredThrowableException(e);
+        }
+    }
+
 
     static JdkVirtualThreadExecutorBuilder newJdkVirtualThreadExecutorBuilder() {
         if (! ok) throw Nope.nope();
@@ -144,6 +166,16 @@ final class LoomaniaImpl {
         } catch (Throwable t) {
             throw new UndeclaredThrowableException(t);
         }
+    }
+
+    static Thread newVirtualThread(final Executor scheduler, final String name, final boolean inheritThreadLocals, final Runnable task, Thread.UncaughtExceptionHandler handler) {
+        Thread.Builder.OfVirtual builder = newVirtualThreadFactory(scheduler);
+        builder.name(name);
+        builder.inheritInheritableThreadLocals(inheritThreadLocals);
+        if (handler != null) {
+            builder.uncaughtExceptionHandler(handler);
+        }
+        return builder.unstarted(task);
     }
 
     /**
